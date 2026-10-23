@@ -24,6 +24,25 @@ es eigene Fehler und korrigiert sie – ähnlich wie Playwright mit Screenshot.
 | `export_model(name, fmt, target_dir)` | Export als `step`, `stl`, `3mf`, `glb`, `obj` |
 | `list_models()` | Alle Modelle im Workspace |
 | `get_source(name)` | build123d-Code eines Modells – zum Weiterbearbeiten |
+| `image_to_extrusion(image, …)` | Logo, Schriftzug, Silhouette → Umrisse extrudieren (STEP + STL, als Code weiter bearbeitbar) |
+| `image_to_relief(image, …)` | Foto → Höhenrelief oder Lithophane (STL/3MF), mit Höhenkarte als Vorschau |
+
+## Aus Bildern 3D-Modelle machen
+
+Ein in den Chat hochgeladenes Bild sieht Claude, der MCP-Server bekommt es aber nicht.
+Leg Bilder deshalb in den Bilderordner (Standard `~/cad-bilder`) und nenne den Dateinamen:
+
+- „Nimm `logo.png` aus cad-bilder, 60 mm breit, 3 mm hoch, auf einer 2-mm-Grundplatte."
+  → `image_to_extrusion`. Umrisse werden automatisch erkannt (Standard: dunkel = Form).
+  Passt etwas nicht: `invert`, `threshold` (0–255) oder `simplify_mm` ändern.
+- „Mach aus `oma.jpg` eine Lithophane, 100 mm breit, mit Rahmen."
+  → `image_to_relief`. Dunkle Stellen werden dick, gegen das Licht erscheint das Foto.
+  Für ein normales Relief (hell = hoch) `dark_is_high=false`.
+
+Absolute Pfade (z. B. `/Users/du/Desktop/logo.png`) gehen auch.
+Geeignet sind kontrastreiche Bilder: Logos, Schriftzüge, Scherenschnitte, Fotos für Reliefs.
+Aus einem normalen Foto eines Gegenstands entsteht so **kein** echtes 3D-Objekt – dafür
+bräuchte es ein KI-Modell (Bild → 3D).
 
 ## Schnellstart auf dem Mac mini mit Claude Code
 
@@ -35,7 +54,7 @@ cd ~/cad-mcp && claude
 Auftrag an Claude Code:
 
 > Installiere diesen MCP-Server laut README: venv anlegen, requirements installieren,
-> mit `python test_pyramide.py` testen (Pyramide 100×100×80 mm) und in meine
+> mit `python test_pyramide.py` und `python test_bilder.py` testen und in meine
 > Claude-Desktop-Konfiguration eintragen.
 
 ## Installation
@@ -57,6 +76,12 @@ python test_pyramide.py
 
 Erwartet: `Abmessungen (X×Y×Z): 100.00 × 100.00 × 80.00 mm`, Volumen ≈ 266.667 mm³.
 
+Bild-Tools testen (erzeugt eigene Testbilder, endet mit `OK`):
+
+```bash
+python test_bilder.py
+```
+
 Kurztest mit dem MCP Inspector:
 
 ```bash
@@ -75,7 +100,8 @@ Windows: `%APPDATA%\Claude\`):
       "command": "/ABSOLUTER/PFAD/cad-mcp/.venv/bin/python",
       "args": ["/ABSOLUTER/PFAD/cad-mcp/server.py"],
       "env": {
-        "CAD_MCP_WORKSPACE": "/ABSOLUTER/PFAD/cad-modelle"
+        "CAD_MCP_WORKSPACE": "/ABSOLUTER/PFAD/cad-modelle",
+        "CAD_MCP_IMAGES": "/ABSOLUTER/PFAD/cad-bilder"
       }
     }
   }
@@ -95,6 +121,7 @@ Claude Desktop neu starten – danach z. B.:
 |---|---|---|
 | `CAD_MCP_WORKSPACE` | `~/cad-mcp-output` | Ablage der Modelle (ein Ordner je Modell) |
 | `CAD_MCP_TIMEOUT` | `60` | Maximale Laufzeit eines CAD-Skripts in Sekunden |
+| `CAD_MCP_IMAGES` | `~/cad-bilder` | Ordner, aus dem die Bild-Tools Dateien lesen |
 
 ## Sicherheit
 

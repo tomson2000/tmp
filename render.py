@@ -23,8 +23,11 @@ LIGHT = np.array([0.4, -0.6, 0.7]) / np.linalg.norm([0.4, -0.6, 0.7])
 def render_views(stl_path: Path, png_path: Path, size_px: int = 900) -> Path:
     mesh = trimesh.load(stl_path, force="mesh")
     tris = mesh.triangles
-    # Einfache Lambert-Schattierung je Dreieck
-    shade = 0.35 + 0.65 * np.clip(mesh.face_normals @ LIGHT, 0, 1)
+    # Einfache Lambert-Schattierung je Dreieck, höher liegende Flächen heller –
+    # sonst sind z. B. Schrift und Grundplatte von oben gleich hell
+    lo_z, hi_z = mesh.bounds[:, 2]
+    height = (mesh.triangles_center[:, 2] - lo_z) / ((hi_z - lo_z) or 1.0)
+    shade = (0.35 + 0.65 * np.clip(mesh.face_normals @ LIGHT, 0, 1)) * (0.55 + 0.45 * height)
     colors = np.column_stack([0.30 * shade, 0.55 * shade, 0.85 * shade, np.ones_like(shade)])
 
     lo, hi = mesh.bounds
@@ -51,6 +54,21 @@ def render_views(stl_path: Path, png_path: Path, size_px: int = 900) -> Path:
 
     dims = hi - lo
     fig.suptitle(f"{dims[0]:.1f} × {dims[1]:.1f} × {dims[2]:.1f} mm", fontsize=11)
+    fig.tight_layout()
+    fig.savefig(png_path)
+    plt.close(fig)
+    return png_path
+
+
+def render_heightmap(z: np.ndarray, width_mm: float, png_path: Path) -> Path:
+    """Draufsicht eines Reliefs als Höhenkarte – flache Reliefs sind in 3D kaum zu sehen."""
+    h_mm = width_mm * (z.shape[0] - 1) / (z.shape[1] - 1)
+    fig, ax = plt.subplots(figsize=(8, 8 * h_mm / width_mm + 0.8), dpi=100)
+    im = ax.imshow(z, cmap="gray_r", extent=(-width_mm / 2, width_mm / 2, -h_mm / 2, h_mm / 2))
+    fig.colorbar(im, ax=ax, label="Höhe in mm (dunkel = hoch)", shrink=0.8)
+    ax.set_title(f"Höhenkarte {width_mm:.1f} × {h_mm:.1f} mm, {z.min():.2f}–{z.max():.2f} mm")
+    ax.set_xlabel("X (mm)")
+    ax.set_ylabel("Y (mm)")
     fig.tight_layout()
     fig.savefig(png_path)
     plt.close(fig)
