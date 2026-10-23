@@ -115,6 +115,12 @@ Claude Desktop neu starten – danach z. B.:
 - „Mach daraus eine Stufenpyramide mit 5 Stufen."
 - „Ein Winkel 80 × 40 × 50 mm, 10 mm Wandstärke, zwei 4-mm-Bohrungen, exportiere als 3MF."
 
+## Beispiele
+
+`beispiele/rav4.py`: Toyota RAV4 (2013–2015) mit Dachbox, nach drei Fotos gebaut
+(Weg „Claude liest das Bild und schreibt CAD-Code"). Originalmaße in mm, für 1:43
+`SCALE = 1 / 43` setzen. Vorschau: `beispiele/rav4.png`.
+
 ## Konfiguration
 
 | Variable | Standard | Bedeutung |
